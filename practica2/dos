@@ -1,0 +1,23 @@
+
+sem tot = 7;
+sem st = 5, sm = 5;
+
+Process CamionTrigo [1..T] {
+	P(st);
+	P(tot);
+
+	// descarga
+
+	V(tot);
+	V(st);
+}
+
+Process CamionMaiz [1..M] {
+	P(sm);
+	P(tot);
+
+	// descarga
+
+	V(tot);
+	V(sm);
+}

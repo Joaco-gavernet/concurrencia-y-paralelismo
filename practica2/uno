@@ -1,0 +1,7 @@
+
+sem s = 5;
+Process P {
+	P(s);
+	// utilizar instancia del recurso
+	V(s);
+}
