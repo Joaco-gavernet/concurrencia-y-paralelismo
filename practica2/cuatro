@@ -32,7 +32,8 @@ Process Persona[id: 1..N] {
 	P(mutex);
 	libre = true;
 	if (q.size() > 0) {
-		int next = q.pop();
+		q.pop();
+		int next = q.front(); 
 		V(b[next]);
 	} else V(mutex);
 }
@@ -44,7 +45,7 @@ Observacion: Passing the baton secuencial.
 
 sem mutex = 1;
 vector<sem> b(n,0);
-int last = -1;
+int last = 0;
 
 Process Persona[id: 1..N] {
 	P(mutex);
@@ -63,6 +64,76 @@ Process Persona[id: 1..N] {
 }
 
 e) ///////////////////////////// 
-Observacion: Empleado hace de monitor de un recurso compartido.
+Observacion: Empleado hace de monitor de un recurso compartido, pero debemos resolver con semaforos.
+
+queue<int> cola;
+vector<sem> b(n,0);
+sem mutex = 1;
+
+Process Empleado {
+	int tot = 0;
+
+	while (tot < N) {
+		P(mutex);
+		int next = cola.front();
+		cola.pop();
+		V(mutex);
+		V(b[next]);
+		P(b[next]);
+		tot++;
+	}
+}
+
+Process Persona[id: 1..N] {
+	P(mutex);
+	cola.push(id);
+	V(mutex);
+
+	P(b[id]);
+	// utilizar recurso 
+	V(b[id]);
+}
 
 
+f) ////////////////////////////
+Observacion: Extendiendo para el caso de M = 10 recursos y un monitor (Empleado).
+
+queue<int> colaPersonas;
+queue<int> colaImpresoras = {1..M};
+vector<int> rec(n,-1); // vector para indicar que recurso le corresponde a cada persona.
+vector<sem> b(n,0);
+sem mutex = 1, mutex2 = 1, s = M, listo = x;
+int termina;
+
+Process Empleado {
+	int tot = 0;
+
+	while (tot < N) {
+		P(mutex);
+		int next = colaPersonas.front();
+		colaPersonas.pop();
+		V(mutex);
+
+		colaImpresoras.push(rec[next]);
+		rec[next] = 0;
+
+		P(listo);
+
+		tot++;
+	}
+}
+
+Process Persona[id: 1..N] {
+	P(mutex);
+	colaPersonas.push(id);
+	V(mutex);
+
+	P(b[id]);
+	// utilizar recurso 
+
+	V(listo);
+	P(mutex2);
+	termina = rec[id]; // se comunica el recurso liberado
+	V(mutex2);
+	V(b[id]);
+}
