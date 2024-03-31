@@ -1,0 +1,68 @@
+
+
+a) ///////////////////////////// 
+sem mutex = 1;
+
+Process Persona[1..N] {
+	P(mutex);
+	Fotocopiar();	
+	V(mutex);
+}
+
+b) ///////////////////////////// 
+Observacion: Passing the baton. 
+
+bool libre = true;
+queue<int> q; // cola para mantener orden de llegada
+sem mutex = 1;
+vector<sem> b(n,0);
+
+Process Persona[id: 1..N] {
+	P(mutex);
+	if (libre == false) {
+		q.push(id);
+		V(mutex);
+		P(b[id]);
+	}
+	libre = false;
+	V(mutex);
+
+	// utilizar recurso
+
+	P(mutex);
+	libre = true;
+	if (q.size() > 0) {
+		int next = q.pop();
+		V(b[next]);
+	} else V(mutex);
+}
+
+c) Idem b) pero cambiando queue<int> por priority_queue<int>. 
+
+d) /////////////////////////////
+Observacion: Passing the baton secuencial. 
+
+sem mutex = 1;
+vector<sem> b(n,0);
+int last = -1;
+
+Process Persona[id: 1..N] {
+	P(mutex);
+	if (last != id-1) {
+		V(mutex);
+		P(b[id]);
+	}
+	V(mutex);
+
+	// utilizar recurso
+
+	P(mutex);
+	last = id;
+	V(b[id+1]);
+	if (id == N) V(mutex);
+}
+
+e) ///////////////////////////// 
+Observacion: Empleado hace de monitor de un recurso compartido.
+
+

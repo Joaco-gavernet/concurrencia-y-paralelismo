@@ -1,0 +1,32 @@
+
+Observacion: Notar que se da una situacion de productor-consumidor simetrica. Los alumnos producen entregas listas, la maestra consume entregas listas. Luego la maestra produce devoluciones, y los alumnos consumen devoluciones. La diferencia es que no cualquier alumno puede recibir cualquier devolucion.  
+
+vector<sem> tareas(40,0); // 40 semaforos (para cada alumno) donde 0 indica tarea no entregada y 1 caso contrario.
+sem entregas = 0; // tareas listas para corregir 
+
+Process Maestra {
+	// se suponen los 40 alumnos presentes en el aula
+	for(i..40) V(tareas[i]); // se entregan las tareas para cada alumno de a uno por vez
+
+	while (tot < 40) { // se espera la finalizacion de todos los alumnos
+		P(entregas); // se espera para recibir una entrega
+		recibirEntrega(i);
+		bool aprobado = corregirEntrega(i);
+		if (aprobado == true) tot++;
+		devolverEntrega(i,aprobado);
+		V(tareas[i]);
+	}
+}
+
+Process Alumno[id: 1..40] {
+	P(tareas[id]); // se espera a recibir la tarea
+
+	bool aprobado = false;
+	while (aprobado == false) {
+		resolverTarea();
+		entregar(id);
+		V(entregas);
+		P(tareas[i]); // se espera a recibir el resultado
+		aprobado = recibirResultado();
+	}
+}
