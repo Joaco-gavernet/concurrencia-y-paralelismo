@@ -1,0 +1,48 @@
+
+Observacion: se puede considerar un problema del tipo "passing the baton" ya que cada corredor le pasa el baton al siguiente en la cola de espera. 
+
+sem mutex = 1, mutex2 = 1, recarga = 0, listo = 0;
+int botellas = 20;
+priority_queue<int> cola; // cola ordenada por orden de llegada
+
+Process Corredor[id: 1..C] {
+	// correr maraton
+	P(mutex);
+	if (libre == false) {
+		cola.push(id,tiempo);
+		V(mutex);
+		P(b[id]);
+	}
+	libre = false
+	V(mutex);
+
+	// utilizar recurso
+	P(mutex2);
+	if (botellas > 0) {
+		botellas--;
+	} else {
+		avisarRepositor();
+		V(recarga);
+		P(listo);
+	}
+	V(mutex2);
+	tomarBotella(); // no es imprescindible dentro de la SC
+
+	P(mutex);
+	libre = true;
+	if (cola.size() > 0) {
+		int next = cola.front();
+		cola.pop();
+		V(b[next]);
+	} else V(mutex);
+}
+
+Process Repositor {
+	while (true) { // notar que se podria contar la cantidad de recargas como C/20
+		P(recarga);
+		reponerBotellas();
+		botellas = 20;
+		V(listo);
+		tot++;
+	}
+}

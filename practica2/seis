@@ -1,0 +1,52 @@
+
+const P = 25; // pasajeros
+const K = 4; // combis 
+
+queue<int> cola;
+vector<int> combi(K,P); // P lugares en K combis
+vector<sem> b(P,0);
+sem mutex = 1, listo = 0, esperar = 0;
+int solicitar; // numero de combi demandada
+bool sube = false;
+
+Process Chofer[id: 1..K] {
+	// TODO: esperar a que se complete la combi 
+	viajar();
+}
+
+Process Persona[id: 1..C] {
+	int numero; // combi en la que desea viajar la persona
+
+	P(mutex);
+	if (libre == false) {
+		cola.push(id);
+		V(mutex);
+		P(b[id]);
+	}
+	libre = true;
+	V(mutex);
+
+	// utilizar rec
+	solicitar = numero;
+	V(listo);
+	P(esperar);
+	if (sube == true) entrar();
+	else retirarse();
+
+	P(mutex);
+	if (cola.size() > 0) {
+		int next = cola.front();
+		V(b[next]);
+	} else V(mutex);
+}
+
+Process Vendedor {
+	while (true) { // mientras haya lugares
+		P(listo);
+		if (combi[solicitar] > 0) {
+			sube = true;
+			combi[solicitar]--;
+		} else sube = false;
+		V(esperar);
+	}
+}
