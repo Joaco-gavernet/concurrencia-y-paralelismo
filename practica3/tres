@@ -1,0 +1,37 @@
+3. En un corralón de materiales hay un empleado que debe atender a N clientes de acuerdo al orden de llegada. Cuando un cliente es llamado por el empleado para ser atendido, le da una lista con los productos que comprará, y espera a que el empleado le entregue el comprobante de la compra realizada.
+
+
+Monitor Recepcionista {
+	bool libre = true;
+	int esperando = 0;
+	cond q;
+
+	procedure entrar() {
+		if (libre == false) esperando++, wait(q);
+		else libre = false;
+	}
+	
+	procedure salir() {
+		if (esperando > 0) esperando--, signal(q);
+		else libre = true;
+	}
+}
+
+Monitor Empleado {
+	procedure transaccion(vector<producto> l, int &comprobante) {
+		procesar(l);
+		modificar(comprobante);
+	}
+}
+
+Process Cliente {
+	const int id;
+
+	vector<producto> listaProductos;
+	int comprobante;
+
+	Recepcionista.entrar();
+	Empleado.transaccion(listaProductos, comprobante);
+	Recepcionista.salir();
+
+}
