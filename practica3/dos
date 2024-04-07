@@ -1,0 +1,106 @@
+a) No es necesario administrar el orden de llegada, el monitor actua como el recurso. 
+
+Monitor Impresora {
+	procedure request(int data) {
+		Fotocopiar(data);
+	}
+}
+
+Process Persona {
+	while (true) {
+		generar(pdf);
+		Impresora.request(pdf);
+	}
+}
+
+b) Se desear respetar el orden de llegada, el monitor administra el recurso impresora.  
+
+Monitor Impresora {
+	cond q;
+	bool libre = true; 
+	int esperando = 0;
+
+	procedure entrar() {
+		if (libre == false) esperando++, wait(q);	
+		else libre = false;
+	}
+
+	procedure salir() {
+		if (esperando > 0) {
+			esperando--;
+			signal(q);
+		} else libre = true;
+	}
+}
+
+Process Persona {
+	while (true) {
+		generar(pdf);
+		Impresora.entrar();
+		Fotocopiar();
+		Impresora.salir();
+	}
+}
+
+c) Se asigna prioridad segun la edad de cada persona.  
+
+Monitor Impresora {
+	vector<cond> espera(N);
+	priority_queue q; // cola ordenada por edad
+	bool libre = true; 
+	int esperando = 0;
+
+	procedure entrar(int id, int edad) {
+		if (libre == false) q.push(id,edad), esperando++, wait(espera[id]);
+		else libre = false;
+	}
+
+	procedure salir() {
+		if (esperando > 0) {
+			esperando--;
+			id = q.pop();
+			signal(espera[id]); // passing the baton
+		} else libre = true;
+	}
+}
+
+Process Persona {
+	const int id, edad; 
+
+	while (true) {
+		generar(pdf);
+		Impresora.entrar(id,edad);
+		Fotocopiar();
+		Impresora.salir();
+	}
+}
+
+f) Un Empleado asigna cual de las 10 fotocopiadoras disponibles le corresponde a cada Cliente. 
+
+Monitor Empleado {
+	int esperando = 0;
+	queue<int> libres = {1..10}; // inicialmente todas las fotocopiadoras libres
+	cond q;
+
+	procedure entrar(int &impresoraId) {
+		if (libres.size() == 0 or esperando > 0) esperando++, wait(q);
+		impresoraId = libres.pop();
+	}
+
+	procedure salir(int impresoraId) {
+		libres.push(impresoraId);
+		signal(q);
+	}
+}
+
+Process Cliente {
+	const int id, edad; 
+	int impresoraId;
+
+	while (true) {
+		generar(pdf);
+		Impresora.entrar(impresoraId);
+		Fotocopiar(impresoraId);
+		Impresora.salir(impresoraId);
+	}
+}
