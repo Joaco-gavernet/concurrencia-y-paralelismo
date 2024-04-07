@@ -1,0 +1,36 @@
+// Implementar el acceso a una base de datos de solo lectura que puede atender a lo sumo 5 consultas simultáneas.
+
+Monitor Database {
+	vector<int> db(N, -1);
+	int consultas = 0;
+
+	procedure get(int &status, int &result, int id) { // "&" por referencia
+		if (consultas < N) {
+			consultas++;
+			result = data[id]; 
+			status = 1;
+		} else status = -1;
+	}
+
+	procedure post(int &status, int data, int id) {
+		if (consultas < N) {
+			consultas++;
+			db[id] = data;
+			status = 1;
+		} else status = -1;
+	}
+}
+
+Process Cliente[id: 1..N] {
+	int aux, status; 
+	while (true) {
+		consulta = rand() % 2;
+		if (consulta == 0) {
+			Database.get(status,aux,id);
+			while (status == 1) Database.get(status,aux,id);
+		else {
+			Database.post(status,aux,id);
+			while (status == 1) Database.post(status,aux,id);
+		}
+	}
+}
