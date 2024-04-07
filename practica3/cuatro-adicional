@@ -1,0 +1,33 @@
+// En una empresa de genética hay N clientes que envían secuencias de ADN para
+que sean analizadas y esperan los resultados para poder continuar. Para resolver estos análisis la empresa cuenta con 1 servidores que resuelve los pedidos de
+acuerdo al orden de llegada de los mismos.
+
+priority_queue q;
+vector<resultados> fin(N);
+
+sem mutex = 0, pedidos = 0;
+sem clientes[N] = {0}
+
+Process Cliente[id: 1..N] {
+	P(mutex);
+	q.push(id,secADN);
+	V(mutex);
+	V(pedidos);
+
+	P(clientes[id]); // esperar resultados
+	// continuar ...
+}
+
+Process Servidor {
+	int act = 0;
+
+	while (act < N) {
+		P(pedidos);
+		P(mutex);
+		[id,data] = q.pop(); // primer elemento en la cola
+		V(mutex);
+		fin[id] = procesar(data);
+		V(clientes[id]);
+		act++;
+	}
+}
