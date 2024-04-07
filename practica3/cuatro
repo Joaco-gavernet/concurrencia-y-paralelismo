@@ -13,13 +13,17 @@ Monitor Aula {
 	cond q;
 
 	procedure entrar(int &idProfesor) {
-		if (libres.size() == 0 or esperando > 0) esperando++, wait(q);
+		if (profLibres == 0) esperando++, wait(q);
+		else profLibres--;
 		idProfesor = libres.pop();
 	}
 
 	procedure salir(int idProfesor) {
 		libres.push(idProfesor);
-		signal(q);
+		if (esperando > 0) {
+			esperando--;
+			signal(q);
+		} else profLibres++;
 	}
 }
 
