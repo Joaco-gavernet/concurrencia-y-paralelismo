@@ -1,0 +1,30 @@
+// Problema: Resolver con MONITORES el siguiente problema. Hay un impresora que debe ser utilizado por N personas de acuerdo al orden de llegada (de a una persona a la vez). Nota: maximizar la concurrencia.
+
+Monitor Impresora {
+	cond espera;
+	int esperando = 0;
+	bool libre = true;
+	queue<int> cola;
+
+	procedure llegada(int id) {
+		if (libre == true and esperando == 0) libre = false;
+		else {
+			esperando++;
+			wait(espera);
+		}
+	}
+
+	procedure salida() {
+		if (esperando == 0) libre = true;
+		else {
+			esperando--;
+			signal(espera);
+		}
+	}
+}
+
+Process Persona[id:0..N] {
+	Impresora.llegada();
+	usarImpresora();
+	Impresora.salida();
+}

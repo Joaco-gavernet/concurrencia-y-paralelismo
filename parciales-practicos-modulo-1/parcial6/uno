@@ -1,0 +1,23 @@
+// Problema: Resolver con SENTENCIAS AWAIT ( <> y <await B; S > ) el siguiente problema. En un negocio hay un empleado que debe atender a C clientes de acuerdo al orden de llegada. Al terminar la atención de un cliente el empleado debe entregarle un número aleatorio para un sorteo. Después de ser atendido el cliente debe imprimir el número que le entregó el empleado. Nota: maximizar la concurrencia.
+
+queue<int> cola;
+int loteria = -1, act = -1;
+vector<bool> turno(C,false); // C turnos inicializados en false
+
+Process Empleado {
+	int cont = 0;
+
+	while (cont < C) {
+		<await (cola.size() > 0 and loteria == -1); loteria = random()>
+		turno[cola.pop()] = true;
+		cont++;
+	}
+}
+
+Process Cliente[id:0..C] {
+	int num = -1;
+
+	<cola.push(id)>
+	<await (turno[id] == true); num = loteria, loteria = -1>
+	print(num);
+}

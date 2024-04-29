@@ -1,0 +1,50 @@
+// Problema: Resolver con SEMAFOROS el siguiente problema. En el examen de una materia hay un docente y 50 alumnos. Cuando todos los alumnos han llegado comienza el examen. A medida que los alumnos van terminando le entregan el examen al docente, y esperan a que este le devuelva la nota del examen. El docente debe corregir los exámenes de acuerdo al orden en que los alumnos entregaron. Nota: maximizar la concurrencia.
+
+const int A = 50;
+int cont = 0;
+int nota = -1;
+queue<<int,Examen>> cola;
+sem s_cola = 1;
+sem s_cont = 1;
+sem s_docente = 0;
+sem s_correccion = 0; // semaforo para avisar al docente que hay correcciones pendientes
+vector<sem> s_alumnos(A,0);
+vector<int> notas(A,0); // A notas inicializadas en 0
+
+Process Alumno[id:0..A] {
+	// llegada 
+	P(s_cont);
+	cont++;
+	if (cont == A) V(s_docente);
+	V(s_cont);
+
+	// esperar el inicio
+	P(s_alumnos[id]);
+
+	Examen e = realizarExamen(); // cada alumno se demora su debido tiempo
+
+	// entrega
+	P(s_cola);
+	cola.push(id,e);
+	V(s_correccion);
+	V(s_cola);
+
+	// resultados
+	P(s_alumnos[id]);
+	int resultado = notas[id];
+}
+
+Process Docente {
+	P(s_docente);
+	for (int i = 0; i < A; i++) V(s_alumnos[i]);	
+
+	while (cont < A) {
+		P(s_correccion);
+		[id,e] = cola.pop();
+		cont++;
+		int nota = corregirExamen(e);
+		notas[id] = nota;
+		V(s_alumnos[id]);
+	}
+
+}
