@@ -1,0 +1,48 @@
+// Problema: Resolver con SEMÁFOROS el siguiente problema. Se debe simular el uso de una máquina expendedora de gaseosas con capacidad para 100 latas por parte de U usuarios. Además existe un repositor encargado de reponer las latas de la máquina. Los usuarios usan la máquina según el orden de llegada. 
+Cuando les toca usarla, sacan una lata y luego se retiran. En el caso de que la máquina se quede sin latas, entonces le debe avisar al repositor para que cargue nuevamente la máquina en forma completa. Luego de la recarga, saca una lata y se retira. 
+Nota: maximizar la concurrencia; mientras se reponen las latas se debe permitir que otros usuarios puedan agregarse a la fila.
+
+
+const int TOT = 100;
+
+bool ocupado = false;
+int latas = TOT; 
+queue<int> cola; 
+sem s_cola = 1;
+sem s_repositor = 0;
+sem s_usuario = 0;
+vector<sem> s_usuarios(U,0);
+
+Process Repositor {
+	while (true) { // true siempre y cuando siga habiendo usuarios potenciales
+		P(s_repositor);
+		latas = TOT;
+		V(s_usuario);
+	}
+}
+
+Process Usuario[id:0..U] {
+	// llegada
+	P(s_cola);
+	if (ocupado == true or cola.size() > 0) {
+		cola.push(id);
+		V(s_cola);
+		P(s_usuarios[id]);
+	} else {
+		ocupado = true;
+		V(s_cola);
+	}
+
+	if (latas == 0) {
+		V(s_repositor);	
+		P(s_usuario);
+	}
+	latas--;
+
+	// retirarse
+	P(s_cola);
+	if (cola.size() > 0) V(s_usuarios[cola.pop()]);
+	else ocupado = false;
+	V(s_cola);
+}
+
