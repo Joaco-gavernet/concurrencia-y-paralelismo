@@ -1,0 +1,36 @@
+// Problema: En una empresa trabajan 20 vendedores ambulantes que forman 5 equipos de 4 personas cada uno (cada vendedor conoce previamente a que equipo pertenece). Cada equipo se encarga de vender un producto diferente. Las personas de un equipo se deben juntar antes de comenzar a trabajar. Luego cada integrante del equipo trabaja independientemente del resto vendiendo ejemplares del producto correspondiente. Al terminar cada integrante del grupo debe conocer la cantidad de ejemplares vendidos por el grupo. Nota: maximizar la concurrencia.
+
+Monitor Equipo[0..4] {
+	int total = 0;
+	int listos = 0;
+	cond esperando;
+
+	procedure llegada() {
+		listos++;
+
+		if (listos == 4) signal_all(esperando);
+		else wait(esperando);
+	}
+
+	// notar parametro por referencia (&) para retornar total
+	procedure fin(int &tot, int vendidos) { 
+		listos--;	
+		total += vendidos;
+
+		if (listos == 0) signal_all(esperando);
+		else wait(esperando);
+
+		// notar que para este momento todos los procesos copian el valor de la variable total, la cual es parmanente del monitor
+		tot = total; 
+	}
+}
+
+// ids desde el 0 inclusive al 19 inclusive
+Process Vendedor[id: 0..20] {
+	int eq = id%4; // cada vendedor pertenece al equipo resto en modulo 4 (0..3)
+	int cont = 0;
+
+	Equipo[eq].llegada();
+	Vender(cont); // procedimiento actualiza contador internamente
+	Equipo[eq].fin(); 
+}

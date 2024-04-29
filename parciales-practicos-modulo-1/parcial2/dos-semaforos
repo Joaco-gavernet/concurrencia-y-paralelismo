@@ -1,0 +1,43 @@
+// Problema: En una empresa trabajan 20 vendedores ambulantes que forman 5 equipos de 4 personas cada uno (cada vendedor conoce previamente a que equipo pertenece). Cada equipo se encarga de vender un producto diferente. Las personas de un equipo se deben juntar antes de comenzar a trabajar. Luego cada integrante del equipo trabaja independientemente del resto vendiendo ejemplares del producto correspondiente. Al terminar cada integrante del grupo debe conocer la cantidad de ejemplares vendidos por el grupo. Nota: maximizar la concurrencia.
+
+
+const int E = 5; // cantidad de equipos
+vector<sem> s_llegada(E,1);
+vector<sem> s_totales(E,1);
+vector<int> llegada(E,0); // vector para contar arribos de cada equipo 
+vector<int> totales(E,0); // vector para contar elementos vendidos por cada equipo 
+
+Process Vendedor[id: 0..V] { // los ids van desde 0 inclusive a 19 inclusive. 
+	int equipo = (id%E); // retorna el grupo al que corresponde [0..4]
+	int cont = 0; // productos vendidos
+
+	// avisar llegada
+	P(s_llegada[equipo]);
+	llegada[equipo]++;
+	if (llegada[equipo] == 4) {
+		V(s_llegada[equipo]);
+		for(int i = equipo; i < 20; i+= 4) if (i <> id) V(s_dormido[i]);
+	} else {
+		V(s_llegada[equipo]);
+		P(s_dormido[id]); // se duerme esperando a que llegue el ultimo vendedor
+	}
+	
+	// trabajar
+	while (sigaVendiendo()) cont++;
+
+	// indicar elementos vendidos
+	P(s_totales[equipo]);
+	totales += cont;
+	V(s_totales[equipo]);
+
+	// al finalizar las ventas se demora para conocer el resultado final
+	P(s_llegada[equipo]);
+	llegada--;
+	if (llegada == 0) { // true si el vendedor es el ultimo en finalizar
+		V(s_llegada[equipo]);
+		for(int i = equipo; i <= 20; i+= 4) if (i <> id) V(s_dormido[i]);
+	} else {
+		V(s_llegada[equipo]);
+		P(s_dormido[id]); 
+	}
+}
