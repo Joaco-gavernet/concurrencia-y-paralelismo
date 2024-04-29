@@ -1,0 +1,35 @@
+
+// Resolver con semaforos
+// Problema: En una estación de trenes, asisten P personas que deben realizar una carga de su tarjeta SUBE en la terminal disponible. La terminal es utilizada en forma exclusiva por cada persona de acuerdo con el orden de llegada. Implemente una solución utilizando sólo emplee procesos Persona. Nota: la función UsarTerminal() le permite cargar la SUBE en la terminal disponible.
+
+// Inicialmente notamos que se trata de un problema similar al clientes-servidor. Ya que muchos clientes (personas) quieren acceder a un mismo servicio y unicamente contamos con un servidor (terminal) capaz de atender dichos pedidos. Luego: 
+// Este problema se puede resolver con la tecnica de "passing the baton" ya que nos facilita mantener un orden de llegada y evitar conflictos entre los procesos que arriban. 
+
+
+sem mutex = 1; // semaforo para administrar el recurso compartido terminal
+vector<sem> procesos(P,0); // P semaforos inicializados en 0
+bool ocupada = 0; // semaforo de exclusion mutua para acceder a la estructura de datos cola
+queue<int> cola; // estructura donde se encolan los ids de las personas en orden de llegada
+
+Process Persona[id: 1..P] {
+	// entrada
+	P(mutex);
+	if (ocupada == true or cola.size() > 0) {
+		cola.push(id);
+		V(mutex);
+		P(procesos[id]);
+	} else { 
+		ocupada = true;
+		V(mutex);
+	}
+
+	UsarTerminal(); 
+
+	// salida
+	P(mutex);
+	if (q.size() > 0) 
+		V(procesos[cola.pop()]); // se despierta al siguiente proceso
+	else 
+		ocupada = false;
+	V(mutex);
+}

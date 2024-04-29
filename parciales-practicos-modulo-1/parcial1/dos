@@ -1,0 +1,32 @@
+// Problema: Resolver con MONITORES el siguiente problema: En una elección estudiantil, se utiliza una máquina para voto electrónico. Existen N Personas que votan y una Autoridad de Mesa que les da acceso a la máquina de acuerdo con el orden de llegada, aunque ancianos y embarazadas tienen prioridad sobre el resto. La máquina de voto sólo puede ser usada por una persona a la vez. Nota: la función Votar() permite usar la máquina.
+
+
+Monitor Autoridad {
+	vector<cond> vots(N); // vector de N variables condicion
+	bool ocupado = false;
+	queue<int> votantes, queue<int> prioritarios;
+	
+	procedure acceder(int id, bool prioridad) {
+		if (ocupado == true) {
+			if (prioridad == true) prioritarios.push(id);
+			else votantes.push(id);
+			wait(vots[id]);
+		} else ocupado = true;
+	}
+
+	procedure liberar() {
+		int next;
+		if (prioritarios.size() > 0) 
+			next = prioritarios.pop();	
+		else 
+			next = votantes.pop();
+		signal(vots[next]);	
+	}
+}
+
+Process Persona[id: 1..N] {
+	bool prioritario = tengoPrioridad(id); // true en caso de prioridad y sino false. 
+	Autoridad.acceder(id,prioridad);
+	Votar();
+	Autoridad.liberar();
+}

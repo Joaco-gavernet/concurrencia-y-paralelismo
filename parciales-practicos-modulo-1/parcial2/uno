@@ -1,0 +1,28 @@
+// Problema: Un sistema debe validar un conjunto de 10000 transacciones que se encuentran disponibles en una estructura de datos. Para ello, el sistema dispone de 7 workers, los cuales trabajan colaborativamente validando de a 1 transacción por vez cada uno. Cada validación puede tomar un tiempo diferente y para realizarla los workers disponen de la función Validar(t), la cual retorna como resultado un número entero entre 0 al 9. Al finalizar el procesamiento, el último worker en terminar debe informar la cantidad de transacciones por cada resultado de la función de validación. Nota: maximizar la concurrencia.
+
+const int TOT = 10000;
+int cont = 0;
+sem s_cola = 1, s_res = 1, s_cont = 1;
+vector<int> resultados(10,0); // 10 posiciones (0..9) inicializadas en 0
+queue<t> transacciones(TOT); // TOT elementos de tipo t
+
+Process Worker[1..7] {
+	P(s_cont);
+	while (cont < TOT) {	
+		cont++;
+		V(s_cont);
+
+		P(s_cola);
+		t = transacciones.pop();
+		V(s_cola);
+
+		int res = Validar(t);
+		P(s_res);
+		resultados[res]++;
+		V(s_res);
+
+		P(s_cont);
+	}
+	if (cont == TOT) for (int i: resultados) print(i); // si es el ultimo imprime res
+	V(s_cont);
+}

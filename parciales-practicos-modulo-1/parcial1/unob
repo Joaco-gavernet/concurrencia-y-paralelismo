@@ -1,0 +1,38 @@
+// Problema: Resuelva el mismo problema anterior pero ahora considerando que hay T terminales disponibles. Las personas realizan una única fila y la carga la realizan en la primera terminal que se libera. Recuerde que sólo debe emplear procesos Persona. Nota: la función UsarTerminal(t) le permite cargar la SUBE en la terminal t.
+
+sem mutex = 1; // semaforo para administrar el recursos compartidos (terminales)
+vector<sem> procesos(P,0); // P semaforos inicializados en 0
+int usando = 0; // cuantas impresoras estan en uso actualmente
+queue<int> cola; // estructura donde se encolan los ids de las personas en orden de llegada
+queue<int> impDisponibles = {1..T}; // cola donde cada elemento es id de impresora
+
+Process Persona[id: 1..P] {
+        // entrada
+        P(mutex);
+	int t;
+        if (impDisponibles.size() == 0 or cola.size() > 0 or usando == T) {
+                cola.push(id);
+                V(mutex);
+                P(procesos[id]);
+        } else {
+		usando++;
+                V(mutex);
+        }
+	P(mutex_imp);
+	t = impDisponibles.pop();
+	V(mutex_imp);
+
+        UsarTerminal(t);
+
+        // salida
+ 	P(mutex_imp);
+	impDisponibles.push(t);
+	V(mutex_imp);       
+
+	P(mutex);
+        if (cola.size() > 0) 
+		V(procesos[cola.pop()]); // se despierta al siguiente proceso
+        else 
+		usando--;
+        V(mutex);
+}
