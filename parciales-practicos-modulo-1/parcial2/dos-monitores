@@ -13,7 +13,7 @@ Monitor Equipo[0..4] {
 	}
 
 	// notar parametro por referencia (&) para retornar total
-	procedure fin(int &tot, int vendidos) { 
+	procedure fin(int &resultado, int vendidos) { 
 		listos--;	
 		total += vendidos;
 
@@ -21,16 +21,16 @@ Monitor Equipo[0..4] {
 		else wait(esperando);
 
 		// notar que para este momento todos los procesos copian el valor de la variable total, la cual es parmanente del monitor
-		tot = total; 
+		resultado = total; 
 	}
 }
 
 // ids desde el 0 inclusive al 19 inclusive
 Process Vendedor[id: 0..20] {
 	int eq = id%4; // cada vendedor pertenece al equipo resto en modulo 4 (0..3)
-	int cont = 0;
+	int cont = 0, total = -1;
 
 	Equipo[eq].llegada();
 	Vender(cont); // procedimiento actualiza contador internamente
-	Equipo[eq].fin(); 
+	Equipo[eq].fin(total,cont); 
 }
