@@ -1,0 +1,17 @@
+// Problema: Resolver con SENTENCIAS AWAIT ( <> y <await B ; S) el problema. Se debe calcular el menor valor de un vector de N números enteros por medio de 10 procesos. Suponga que N es múltiplo de 10. Nota: maximizar la concurrencia.
+
+const int P = 10;
+int resultado = INF; // inicialmente se seta el resultado en infinito
+vector<int> v(N); // N enteros de los cuales se desea hallar el minimo
+
+Process Calculador[id:0..P] {
+	// si N es multiplo de 10, entonces T = N/10 es la cantidad de numeros por cada Calculador
+	int T = N/10;
+
+	int act = INF;
+	for (int i = T*id; i < (T+1)*id; i++) {
+		act = min(v[i],act);
+	}
+
+	<resultado = min(resultado,act)>
+}

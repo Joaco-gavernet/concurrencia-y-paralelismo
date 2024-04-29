@@ -1,0 +1,30 @@
+// Problema: Resolver con MONITORES el siguiente problema. Hay un teléfono público que debe ser utilizado por N personas de acuerdo al orden de llegada (de a una persona a la vez). Nota: maximizar la concurrencia.
+
+
+Process Persona[id:0..N] {
+	Telefono.llegada();
+	usarTelefono();
+	Telefono.salida();
+}
+
+Monitor Telefono {
+	cond fila;
+	bool libre = true;
+	int esperando = 0;
+
+	procedure llegada() {
+		if (libre == true) libre = false;
+		else {
+			esperando++;
+			wait(fila);
+		}
+	}
+
+	procedure salida() {
+		if (esperando == 0) libre = true;
+		else {
+			esperando--;
+			signal(fila);
+		}
+	}
+}

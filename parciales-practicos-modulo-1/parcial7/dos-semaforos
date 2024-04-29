@@ -1,0 +1,31 @@
+// Problema: Resolver con SEMAFOROS el siguiente problema. Hay una carrera donde compiten 15 Autos; cuando todos han llegado se larga la carrera. Al terminar cada auto debe saber en qué posición terminó. Nota: maximizar la concurrencia.
+
+const int A = 15;
+int cont = A;
+vector<sem> s_barrera(A,0); // A semaforos inicializados en 0
+sem s_cont = 1;
+
+Process Auto[id:0..A] {
+	// inicio
+	P(s_cont);
+	cont--;
+	if (cont == 0) {
+		V(s_cont);
+		for(int i = 0; i < A; i++) {
+			if (i != id) V(s_barrera[i]);
+		}
+	} else {
+		V(s_cont);
+		P(s_barrera[i]);
+	}
+	
+	// largada
+	P(s_barrera[id]);
+	correrCarrera();
+
+	// llegada
+	P(s_cont);
+	int posicion = cont;
+	cont++;
+	V(s_cont);
+}
