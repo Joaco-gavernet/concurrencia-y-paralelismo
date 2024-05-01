@@ -1,0 +1,57 @@
+// Problema: Resolver con MONITORES el uso de un equipo de videoconferencia que puede ser usado por una única persona a la vez. Hay P Personas que utilizan este equipo (una única vez cada uno) para su trabajo de acuerdo a su prioridad. La prioridad de cada persona está dada por un número entero positivo. Además existe un Administrador que cada 3 hs. incrementa en 1 la prioridad de todas las personas que están esperando por usar el equipo. Nota: maximizar la concurrencia.
+
+// En la solucion planteada, el administrador debe ganarse su lugar para poder aumentar la prioridad. Compitiendo por el acceso al equipo contra el resto de las personas. 
+
+
+Monitor Equipo {
+	vector<cond> dormidos(P);
+	bool libre = true;
+	int esperando = 0;
+	queue<<int,int>> cola; // prioridad y id respectivamente
+	// la cola se encuentra ordenada decrecientemente por prioridad
+
+	procedure llegada(int prioridad, int id) {
+		if (libre == true) {
+			libre = false;
+		} else {
+			esperando++;
+			cola.push({prioridad,id});
+			wait(dormidos[id]);
+		}
+	}
+
+	procedure salida() {
+		if (esperando == 0) {
+			libre = true;
+		} else {
+			int next = cola.pop();
+			signal(dormidos[next.id]);
+			esperando--;
+		}
+	}
+
+	procedure priorizar() {
+		queue<<int,int>> nueva;
+		while (cola.size()) {
+			elemento = cola.pop();
+			elemento.prioridad++;
+			nueva.push(elemento);
+		}
+		cola = nueva;
+	}
+}
+
+Process Administrador {
+	while (true) {
+		delay(3); // tiempo en horas
+		Equipo.priorizar();
+	}
+}
+
+Process Persona[id:0..P] {
+	int p = prioridad(id);
+	Equipo.llegada(p,id);
+	usarEquipo();
+	Equipo.salida();
+}
+

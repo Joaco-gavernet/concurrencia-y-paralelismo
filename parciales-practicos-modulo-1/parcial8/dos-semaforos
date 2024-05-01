@@ -1,0 +1,114 @@
+// Problema: Resolver con SEMAFOROS el funcionamiento en una fábrica de ventanas con 7 empleados (4 carpinteros, 1 vidriero y 2 armadores) que trabajan de la siguiente manera:
+
+• Los carpinteros continuamente hacen marcos (cada marco es armando por un único carpintero) y los deja en un depósito con capacidad de almacenar 30 marcos.
+• El vidriero continuamente hace vidrios y los deja en otro depósito con capacidad para 50 vidrios.
+• Los armador continuamente toman un marco y un vidrio de los depósitos correspondientes y arman la ventana (cada ventana es armada por un único armador).
+
+Nota: maximizar la concurrencia.
+
+// Conociendo la cantidad de lugares disponibles para cada elemento, notamos que es conveniente plantear el problema como buffer circular de productores-consumidores. 
+
+const int E = 7; 
+const int C = 4;
+const int A = 2;
+const int MAX_MARCOS = 30;
+const int MAX_VIDRIOS = 50;
+
+// Cantidad disponible para cada elemento:
+int marcos = 0;
+int vidrios = 0;
+
+// El buffer circular se representa como un vector de size fijo. 
+vector<Marco> m(MAX_MARCOS); // 30 Marcos inicializados en vacio
+vector<Vidrio> v(MAX_VIDRIOS); // 50 Vidrios inicializados en vacio
+
+// Los punteros p refieren al proximo lugar disponible donde depositan los productores
+// Los punteros c refieren al proximo lugar de donde toman los consumidores
+// Si ambos punteros coinciden y la cantidad es nula entonces los consumidores no pueden consumir elementos. En cambio, si los punteros coinciden pero la cantidad es maxima entonces los productores no pueden depositar elementos. 
+int mp = 0, mc = 0;
+int vp = 0, vc = 0; 
+
+sem s_marcos = 1;
+sem s_vidrios = 1;
+
+
+Process Carpintero[1..C] {
+	bool vacio = true;
+	Marco act;
+
+	while (true) {
+		if (vacio == true) act = armarMarco();
+		P(s_marcos);
+		if (marcos < 30) {
+			m[mp] = act;
+			mp = (mp + 1) % MAX_MARCOS;
+			marcos++;
+			vacio = true;
+			if (marcos == 1) V(s_hayMarco);
+		}
+		V(s_marcos);
+	}
+}
+
+Process Vidriero {
+	bool vacio = true;
+	Marco act;
+
+	while (true) {
+		if (vacio == true) act = armarVidrio();
+		P(s_vidrios);
+		if (vidrios < 30) {
+			v[vp] = act;
+			vp = (vp + 1) % MAX_VIDRIOS;
+			vidrios++;
+			vacio = true;
+			if (vidrios == 1) V(s_hayVidrio);
+		}
+		V(s_vidrios);
+	}
+}
+
+// Los armadores intentan tomar primero un marco. Si encuentran un marco disponible luego intentan tomar un vidrio. Caso contrario, vuelven a intentar tomar un marco. 
+Process Armador[1..A] {
+	Marco m_act;
+	Vidrio v_act;
+	bool hayMarco = false;
+	bool hayVidrio = false;
+
+	while (true) {
+		if (hayMarco == false) {
+			P(s_marcos);
+			if (marcos > 0) {
+				marcos--;
+				hayMarco = true;
+				m_act = m[mc];
+				mc = (mc + 1) % MAX_MARCOS;
+				V(s_marcos);
+			} else {
+				V(s_marcos);
+				P(s_hayMarco);
+			}
+		}
+
+		if (hayVidrio == false) {
+			P(s_vidrios);
+			if (vidrios > 0) {
+				vidrios--;
+				hayVidrio = true;
+				v_act = v[vc];
+				vc = (vc + 1) % MAX_VIDRIOS;
+				V(s_vidrios);
+			} else {
+				V(s_vidrios);
+				P(s_hayVidrio);
+			}
+		}
+
+		if (hayMarco and hayVidrio) {
+			Ventana res = armar(m_act,v_act);
+			hayMarco = false;
+			hayVidrio = false;
+			despachar(res);
+		}
+	}
+}

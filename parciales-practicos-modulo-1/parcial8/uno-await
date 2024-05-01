@@ -1,0 +1,25 @@
+// Problema: Resolver con SENTENCIAS AWAIT ( <> y <await B ; S >) el problema de los filósofos evitando deadlock y demora innecesaria.
+
+vector<bool> disp(N+1,true); 
+// Inicialmente los N+1 tenedores se encuentran disponibles.
+// Cada filosofo i puede tomar el tenedor en la posicion i y en la i+1 solo si esta disponible. 
+// Se supone que N > 1 
+
+Process Filosofo[id:0..N] {
+	if (id == 0) {
+		// Para evitar deadlock, el primer filosofo arranca tomando por la dereche y luego por la izquierda.
+
+		< await (disp[id+1] == true); disp[id+1] = false; >
+		< await (disp[id] == true); disp[id] = false; >
+	} else {
+		// El resto de los filosofos arrancan tomando por la izquierda y luego por la derecha. 
+
+		< await (disp[id] == true); disp[id] = false; >
+		< await (disp[(id+1)%N] == true); disp[id+1] = false; >
+	}
+
+	comer();
+
+	// Liberar tenedores
+	< disp[id] = true; disp[(id+1)%N] = true; >
+}
