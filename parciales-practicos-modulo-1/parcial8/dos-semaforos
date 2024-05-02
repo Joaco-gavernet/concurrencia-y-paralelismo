@@ -44,7 +44,7 @@ Process Carpintero[1..C] {
 			mp = (mp + 1) % MAX_MARCOS;
 			marcos++;
 			vacio = true;
-			if (marcos == 1) V(s_hayMarco);
+			V(s_hayMarco);
 		}
 		V(s_marcos);
 	}
@@ -62,7 +62,7 @@ Process Vidriero {
 			vp = (vp + 1) % MAX_VIDRIOS;
 			vidrios++;
 			vacio = true;
-			if (vidrios == 1) V(s_hayVidrio);
+			V(s_hayVidrio);
 		}
 		V(s_vidrios);
 	}
@@ -72,43 +72,23 @@ Process Vidriero {
 Process Armador[1..A] {
 	Marco m_act;
 	Vidrio v_act;
-	bool hayMarco = false;
-	bool hayVidrio = false;
 
 	while (true) {
-		if (hayMarco == false) {
-			P(s_marcos);
-			if (marcos > 0) {
-				marcos--;
-				hayMarco = true;
-				m_act = m[mc];
-				mc = (mc + 1) % MAX_MARCOS;
-				V(s_marcos);
-			} else {
-				V(s_marcos);
-				P(s_hayMarco);
-			}
-		}
+		P(s_hayMarco);
+		P(s_marcos);
+		marcos--;
+		m_act = m[mc];
+		mc = (mc + 1) % MAX_MARCOS;
+		V(s_marcos);
 
-		if (hayVidrio == false) {
-			P(s_vidrios);
-			if (vidrios > 0) {
-				vidrios--;
-				hayVidrio = true;
-				v_act = v[vc];
-				vc = (vc + 1) % MAX_VIDRIOS;
-				V(s_vidrios);
-			} else {
-				V(s_vidrios);
-				P(s_hayVidrio);
-			}
-		}
+		P(s_hayVidrio);
+		P(s_vidrios);
+		vidrios--;
+		v_act = v[vc];
+		vc = (vc + 1) % MAX_VIDRIOS;
+		V(s_vidrios);
 
-		if (hayMarco and hayVidrio) {
-			Ventana res = armar(m_act,v_act);
-			hayMarco = false;
-			hayVidrio = false;
-			despachar(res);
-		}
+		Ventana res = armar(m_act,v_act);
+		despachar(res);
 	}
 }
