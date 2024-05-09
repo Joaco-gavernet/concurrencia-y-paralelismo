@@ -1,0 +1,16 @@
+Problema: Suponga que N personas llegan a la cola de un banco. Para atender a las personas existen 2 empleados que van atendiendo de a una y por orden de llegada a las personas.
+
+chan cola(string);
+
+Process Persona[1..N] {
+	string id = nombreCompleto();
+	send cola(id);
+}
+
+Process Empleado[1..2] {
+	while (true) {
+		string next;
+		receive cola(next);
+		llamar(next);
+	}
+}

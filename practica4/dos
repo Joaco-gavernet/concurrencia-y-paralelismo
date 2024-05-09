@@ -1,0 +1,47 @@
+Se desea modelar el funcionamiento de un banco en el cual existen 5 cajas para realizar pagos. Existen P personas que desean pagar. Para esto cada una selecciona la caja donde hay menos personas esperando, una vez seleccionada espera a ser atendido.
+NOTA: maximizando la concurrencia.
+
+const int C = 5;
+
+chan llegada(int);
+chan listo(int);
+chan esperando[1..P](string);
+chan colas[1..C](string);
+
+Process Persona[id:1..P] {
+	send llegada(id);
+	int idCola;
+	receive esperando[id](idCola);
+	send colas[idCola](id);
+	receive esperando[id](resultado); // sincronizacion
+}
+
+Process Coordinador {
+	vector<int> totales(C,0);
+	int id;
+
+	while (true) {
+		do {
+			if (!empty llegada) {
+				receive llegada(id);
+				minimo = getMin(totales);
+				totales[minimo]++;
+				send esperando[id](minimo);
+			}
+			if (!empty listo) {
+				receive listo(id);
+				totales[id]--;
+			}
+		}
+	}
+
+}
+
+Process Caja[id: 1..C] {
+	int idPersona;
+	while (true) {
+		receive caja[id](idPersona);
+		procesar(idPersona); // puede demorarse indeterminadamente
+		send listo(id); // avisa que finaliza al coordinador
+	}
+}
