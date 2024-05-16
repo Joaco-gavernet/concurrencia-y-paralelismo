@@ -1,0 +1,39 @@
+// Problema: Simular la atención en un locutorio con 10 cabinas telefónicas, que tiene un empleado que se encarga de atender a los clientes. Hay N clientes que al llegar esperan hasta que el empleado les indica a que cabina ir, la usan y luego se dirigen al empleado para pagarle. 
+El empleado atiende a los clientes en el orden en que hacen los pedidos, pero siempre dando prioridad a los que terminaron de usar la cabina. Nota: maximizar la concurrencia; suponga que hay una función Cobrar() llamada por el empleado que simula que el empleado le cobra al cliente.  
+
+const int T = 10;
+
+chan pedidoCabina(int);
+chan pedidoCobro(int);
+chan siguienteCabina[1..C](int);
+chan siguienteCobro[1..C](int);
+
+Process Empleado {
+	queue<int> libres = {1..T};
+	int idC, cabina; 
+
+	while (true) {
+		while (not empty(pedidoCobro) or libres.size() == 0) {
+			receive pedidoCobro(idC,cabina);
+			libres.push(cabina);
+			ticket = cobrar();
+			send siguienteCobro[idC](ticket);
+		}
+		if (not empty(pedidoCabina) and libres.size()) {
+			receive pedidoCabina(idC);
+			send siguienteCabina[idC](libres.pop());
+		}
+	}
+}
+
+Process Cliente[id:1..C] {
+	int res;
+
+	send pedidoCabina(id);
+	receive siguienteCabina[id](res); // recibe numero de cabina
+
+	usarCabina(res);
+
+	send pedidoCobro(id,res);
+	receive siguienteCobro[id](res); // recibe el ticket de cobro
+}
