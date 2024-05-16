@@ -7,27 +7,50 @@ Nota: maximizar la concurrencia.
 const int Q = 2;
 const int V = 3;
 
-chan pedidos(int,string);
-chan porPreparar(int,string);
+// canales para los clientes
+chan ordenes(int,string);
 chan esperando[1..C](int);
+
+// canales para los vendedores
+chan PedidoVendedores(int);
+chan Siguiente[1..V](int,string);
+
+// compartido con cocineros
+chan porPreparar(int,string); 
+
 
 Process Cliente[id:1..C] {
 	string menu = generarPedido();
-	send pedidos(id,menu);
+	send ordenes(id,menu);
 
 	string resultado;
 	receive esperando[id](resultado);
 }
 
-Process Vendedor[1..V] {
-	int who;
-	string what;
+Process CoordinadorVendedores {
+	int idV;
+
 	while (true) {
-		if (empty(pedidos)) delay(random(1,3));
-		else receive pedidos(who,what);
+		int who = -1;
+		string what = "";
+		receive PedidoVendedores(idV);
+		if (not empty(ordenes)) receive ordenes(who,what);
+		send Siguiente[idV](who,what);
 	}
 }
 
+Process Vendedor[id:1..V] {
+	int who;
+	string what;
+	while (true) {
+		send PedidoVendedores(id);
+		receive Siguiente[id](who,what);
+		if (who == -1) delay(random(1,3));
+		else send porPreparar(who,what);
+	}
+}
+
+// Para el caso de los cocineros no es necesario evitar el busy-waiting. 
 Process Cocinero[1..Q] {
 	int who;
 	string what;
