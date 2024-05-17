@@ -1,0 +1,46 @@
+// Problema: En un laboratorio de genética veterinaria hay 3 empleados. El primero de ellos se encarga de preparar las muestras de ADN lo más rápido posible; el segundo toma cada muestra de ADN preparada y arma el set de análisis que se deben realizar con ella y espera el resultado para archivarlo y continuar trabajando; el tercer empleado se encarga de realizar el análisis y devolverle el resultado al segundo empleado. 
+
+
+const int E = 3;
+
+Process Uno {
+	while (true) {
+		string muestra = generarMuestra();
+		Buffer!(muestra);
+	}
+}
+
+Process Buffer {
+	queue<string> q;
+	string muestra;
+
+	while (true) {
+		do {
+			Uno?(muestra) -> q.push(muestra);
+			q.size(); Dos?pedido() -> Dos!reporte(q.pop());	
+		}
+	}
+}
+
+Process Dos {
+	string muestra; 
+
+	while (true) {
+		Buffer!pedido();
+		Buffer?reporte(muestra);
+		string set = procesar(muestra);
+		Tres!inicio(set);
+		Tres?fin(set);
+		archivar(set);
+	}
+}
+
+Process Tres {
+	string set;
+
+	while (true) {
+		Dos?inicio(set);
+		string resultado = analizar(set);
+		Dos!fin(resultado);
+	}
+}
