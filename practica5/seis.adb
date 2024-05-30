@@ -44,6 +44,13 @@ Begin
 		cont := cont +1;
 	end loop;
 
+	-- avisar finalizacion de busqueda a miembros del equipo
+	while pedido'count > 0 loop
+		accept pedido(monto: IN integer; fin: OUT boolean) is
+			fin := true;
+		end pedido;
+	end loop;
+
 	-- esperar resultado final
 	for i in 1..T loop
 	end loop;
@@ -58,6 +65,7 @@ Task Body Persona is
 	monto: integer := 0;
 	fin: boolean := false;
 Begin
+	-- se supone que la persona sabe cual es su equipo (myT)
 	Coordinador(myT).llegada();
 
 	while fin = false loop
