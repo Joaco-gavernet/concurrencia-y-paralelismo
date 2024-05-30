@@ -20,6 +20,7 @@ Task Segundo;
 
 Task Body Central is
 datos, resultado: string;
+restriccion: boolean := false;
 Begin
 	accept signalUno(datos) is
 		resultado := procesar(datos);
@@ -28,7 +29,11 @@ Begin
 
 	loop
 		select
-			accept signalUno(datos) is
+			when (restriccion = true) => accept reset() is
+				restriccion := false;
+			end reset;
+		or
+			when (restriccion = false) => accept signalUno(datos) is
 				resultado := procesar(datos);
 				datos := resultado;
 			end signalUno;
@@ -37,18 +42,10 @@ Begin
 				resultado := procesar(datos);
 				datos := resultado;
 			end signalDos;
-
-			-- Mientras se reciba signal, se mantiene comunicacion hasta 3 minutos
-			loop 
-				select
-					accept signalDos(datos) is
-						resultado := procesar(datos);
-						datos := resultado;
-					end signalDos;
-				or delay 180
-					exit; -- sale del loop
-				end select;
-			end loop; 
+			if (restriccion = false) then
+				restriccion := true;
+				Timer.iniciar();
+			end if;
 		end select;
 	end loop;
 End Central;
@@ -83,6 +80,15 @@ Begin
 		end select;
 	end loop;
 End Primero;
+
+Task Body Timer is
+Begin
+	loop
+		accept iniciar;
+		delay 180
+		Central.reset();
+	end loop;
+End Timer;
 
 -------------------
 
