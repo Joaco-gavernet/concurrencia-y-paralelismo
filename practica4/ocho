@@ -40,8 +40,8 @@ Process Admin {
 }
 
 Process Alumno[id:1..P] {
-	Buffer!llegada(); // avisa llegada
-	Buffer?inicio(); // se demora hasta el inicio
+	Admin!llegada(); // avisa llegada
+	Admin?inicio(); // se demora hasta el inicio
 
 	string examen = hacerExamen();
 	Admin!(id,examen);

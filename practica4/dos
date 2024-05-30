@@ -6,6 +6,7 @@ const int C = 5;
 chan llegada(int);
 chan listo(int);
 chan esperando[1..P](string);
+chan esperandoResultado[1..P](string);
 chan colas[1..C](string);
 
 Process Persona[id:1..P] {
@@ -13,7 +14,7 @@ Process Persona[id:1..P] {
 	int idCola;
 	receive esperando[id](idCola);
 	send colas[idCola](id);
-	receive esperando[id](resultado); // sincronizacion
+	receive esperandoResultado[id](resultado); // sincronizacion
 }
 
 Process Coordinador {
@@ -21,18 +22,16 @@ Process Coordinador {
 	int id;
 
 	while (true) {
-		do {
-			if (!empty llegada) {
-				receive llegada(id);
-				minimo = getMin(totales);
-				totales[minimo]++;
-				send esperando[id](minimo);
-			}
-			if (!empty listo) {
-				receive listo(id);
-				totales[id]--;
-			}
+		receive llegada(id);
+
+		while (!empty listo) {
+			receive listo(id);
+			totales[id]--;
 		}
+
+		minimo = getMin(totales);
+		totales[minimo]++;
+		send esperando[id](minimo);
 	}
 
 }
@@ -40,8 +39,9 @@ Process Coordinador {
 Process Caja[id: 1..C] {
 	int idPersona;
 	while (true) {
-		receive caja[id](idPersona);
-		procesar(idPersona); // puede demorarse indeterminadamente
+		receive colas[id](idPersona);
+		resultado = procesar(idPersona); // puede demorarse indeterminadamente
+		send esperandoResultado[idPersona](resultado);
 		send listo(id); // avisa que finaliza al coordinador
 	}
 }
