@@ -9,12 +9,15 @@
 Procedure Program is
 
 Task Administrador is
-	entry siguiente(direc: OUT string);
-	entry pedido(direc: IN string);
+	entry siguiente(id: OUT integer);
+	entry pedido(id: IN integer);
 End Administrador;
 
-Task Type Camion
-Task Type Persona
+Task Type Persona is
+	entry ident(identificador: IN integer) is 
+End Persona;
+
+Task Type Camion;
 
 arrCamiones: array(1..3) of Camion;
 arrPersonas: array(1..P) of Persona;
@@ -22,19 +25,18 @@ arrPersonas: array(1..P) of Persona;
 -----------------------
 
 Task Body Administrador is
-	index: integer;
 	vector<integer> pedidosPorPersona(N,0); -- size N inicializado en 0
 Begin
 	loop
 		select
-			when(siguiente'count = 0) => accept pedido(direc: IN string) do 
-				index := hash(direc);
-				pedidosPorPersona(index) := pedidosPorPersona(index) +1;
+			when(siguiente'count = 0) => accept pedido(id: IN integer) do 
+				if (pedidosPorPersona(id) <> -1) then
+					pedidosPorPersona(id) := pedidosPorPersona(id) +1;
 			end pedido;
 		or 
-			accept siguiente(direc: OUT string) do 
-				index := getMax(pedidosPorPersona);
-				direc := hashInv(index);
+			accept siguiente(id: OUT integer) do 
+				id := max(pedidosPorPersona);
+				pedidosPorPersona(id) := -1; -- se indica que ya fue atendida
 			end siguiente;
 		end select;
 	end loop;
@@ -43,18 +45,22 @@ End Administrador;
 Task Body Camion is
 Begin
 	loop
-		Administrador.siguiente(direc);
-		atender(direc);
+		Administrador.siguiente(idP);
+		atender(idP);
 	end loop;
 End Camion;
 
 Task Body Persona is
+	id: integer;
 	direc: string;
 	exito: boolean := false;
 Begin
-	direc := generarDireccion();
+	accept ident(identificador: IN integer) do 
+		id:= identificador;
+	end ident;
+
 	while (exito = false) loop
-		Administrador.pedido(direc);
+		Administrador.pedido(id);
 		select
 			accept recibir() do 
 				exito := true;
@@ -67,5 +73,7 @@ End Persona;
 -----------------------
 
 Begin
-	null;
+	for i in 1..P loop
+		arrPersonas(i).ident(i);
+	end loop;
 End;
