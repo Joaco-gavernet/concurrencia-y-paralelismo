@@ -16,8 +16,8 @@ Procedure Clinica is
 
 	Task Type Paciente;
 	Task Type Enfermera;
-	Task Buzon is
-		entry medicoLibre();
+	Task Buzon is 
+		entry medicoLibre(hayNota: OUT boolean);
 		entry nota(mensaje: IN string);
 	End Buzon;
 	
