@@ -11,11 +11,15 @@ Procedure Clinica is
 	Task Medico is
 		entry pedido(datos: IN string; diagnostico: OUT string); 
 		entry atencion(mensaje: IN/OUT string);
-		entry nota(mensaje: IN string; resultado: OUT string);
+		entry nota(mensaje: IN string);
 	End Medico;
 
 	Task Type Paciente;
 	Task Type Enfermera;
+	Task Buzon is
+		entry medicoLibre();
+		entry nota(mensaje: IN string; resultado: OUT string);
+	End Buzon;
 	
 	arrPacientes: array(1..P) of Paciente;
 	arrEnfermeras: array(1..E) of Enfermera;
@@ -28,32 +32,35 @@ Procedure Clinica is
 					resultado := procesar(datos);
 				end pedido;
 			else
-				accept atencion(datos) is
-					datos := escucharYEmitirRespuesta(datos);
+				when (pedido'count = 0) => accept atencion(datos) is
+					datos := analizar(datos); -- incluye el tiempo que demora en procesar la consulta
 				end atencion;
 			else
-				accept nota(mensaje,resultado) is
-					resultado := procesarMensaje(mensaje);
-			end nota;
+				-- el medico se encuentra libre
+				Buzon.medicoLibre(hayNota);
+				if (hayNota = true) then 
+					accept nota(mensaje) is
+						procesarMensaje(mensaje);
+					end nota;
+				end if;
+			end select;
 		end loop;
 	End Medico;
 
 	Task Body Paciente is
+		strike: integer := 0;
 		datos, diagnostico: string;
 	Begin
 		datos := generarDatos();
-		select
-			Medico.pedido(datos,diagnostico);
-		or delay 300
-			delay 600;
-			select Medico.pedido(datos,diagnostico); 
-				select Medico.pedido(datos,diagnostico); 
-					select Medico.pedido(datos,diagnostico); 
-					else retirarse();
-				else retirarse();
-			else retirarse();
+		while (strike < 3) loop
+			select
+				Medico.pedido(datos,diagnostico);
+				strike := 3; -- marca de fin de atencion
+			or delay 300
+				strike := strike +1;
 			end select;
-		end select;
+			delay 600; -- espera 10 minutos y vuelve a intentar
+		end loop;
 	End Paciente;
 
 	Task Body Enfermera is
@@ -65,10 +72,31 @@ Procedure Clinica is
 			select
 				Medico.atencion(mensaje);
 			else
-				Medico.nota(mensaje,resultado);
+				-- si el medico no acepta inmediatamente su pedido procede a dejar un mensaje
+				-- la enfermera deja la nota, pero nunca aclara que debe recuperar el resultado
+				Buzon.nota(mensaje);
 			end select;
 		end loop;
 	End Enfermera;
+
+	Task Body Buzon is
+		vector<string> mensajesPendientes;
+		mensaje, resultado: string;
+	Begin
+		loop
+			select
+				accept nota(mensaje: IN string) is
+					mensajesPendientes.push(mensaje);
+				end nota;
+			or
+				accept medicoLibre(hayNota: IN/OUT boolean) is
+					if (mensajesPendientes.size() > 0) then hayNota := true;
+				  else hayNota := false;
+				end medicoLibre;
+			end select;
+		end loop;
+	End Buzon;
+
 
 Begin
 	null;
