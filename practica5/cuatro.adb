@@ -18,7 +18,7 @@ Procedure Clinica is
 	Task Type Enfermera;
 	Task Buzon is
 		entry medicoLibre();
-		entry nota(mensaje: IN string; resultado: OUT string);
+		entry nota(mensaje: IN string);
 	End Buzon;
 	
 	arrPacientes: array(1..P) of Paciente;
@@ -81,7 +81,7 @@ Procedure Clinica is
 
 	Task Body Buzon is
 		vector<string> mensajesPendientes;
-		mensaje, resultado: string;
+		mensaje: string;
 	Begin
 		loop
 			select
@@ -89,7 +89,7 @@ Procedure Clinica is
 					mensajesPendientes.push(mensaje);
 				end nota;
 			or
-				accept medicoLibre(hayNota: IN/OUT boolean) is
+				accept medicoLibre(hayNota: OUT boolean) is
 					if (mensajesPendientes.size() > 0) then hayNota := true;
 				  else hayNota := false;
 				end medicoLibre;
