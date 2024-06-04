@@ -18,8 +18,8 @@ Procedure Clinica is
 	Task Type Enfermera;
 	Task Intermediario;
 	Task Buzon is 
-		entry nuevaNota(dato: OUT boolean);
-		entry nota(mensaje: IN string);
+		entry notaIntermediario(dato: OUT boolean);
+		entry notaEnfermera(mensaje: IN string);
 	End Buzon;
 
 	
@@ -72,7 +72,7 @@ Procedure Clinica is
 			else
 				-- si el medico no acepta inmediatamente su pedido procede a dejar un mensaje
 				-- la enfermera deja la nota, pero nunca aclara que debe recuperar el resultado
-				Buzon.nota(mensaje);
+				Buzon.notaEnfermera(mensaje);
 			end select;
 		end loop;
 	End Enfermera;
@@ -81,7 +81,7 @@ Procedure Clinica is
 		mensaje: string;
 	Begin
 		loop
-			Buzon.nuevaNota(dato: OUT string) is
+			Buzon.notaIntermediario(dato: OUT string) is
 				mensaje := dato;
 			end nuevaNota;
 			Medico.nota(mensaje);
@@ -94,11 +94,11 @@ Procedure Clinica is
 	Begin
 		loop
 			select
-				accept nota(mensaje: IN string) is
+				accept notaEnfermera(mensaje: IN string) is
 					mensajesPendientes.push(mensaje);
 				end nota;
 			or
-				when (mensajesPendientes.size() > 0) => accept nuevaNota(dato: OUT string) is
+				when (mensajesPendientes.size() > 0) => accept notaIntermediario(dato: OUT string) is
 					dato := mensajesPendientes.pop();
 				end nuevaNota;
 			end select;
