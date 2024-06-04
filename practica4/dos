@@ -1,4 +1,4 @@
-Se desea modelar el funcionamiento de un banco en el cual existen 5 cajas para realizar pagos. Existen P personas que desean pagar. Para esto cada una selecciona la caja donde hay menos personas esperando, una vez seleccionada espera a ser atendido.
+Se desea modelar el funcionamiento de un banco en el cual existen 5 cajas para realizar pagos.Existen P personas que desean pagar. Para esto cada una selecciona la caja donde hay menos personas esperando, una vez seleccionada espera a ser atendido.
 NOTA: maximizando la concurrencia.
 
 const int C = 5;
@@ -10,8 +10,10 @@ chan esperandoResultado[1..P](string);
 chan colas[1..C](string);
 
 Process Persona[id:1..P] {
-	send llegada(id);
 	int idCola;
+	string resultado;
+
+	send llegada(id);
 	receive esperando[id](idCola);
 	send colas[idCola](id);
 	receive esperandoResultado[id](resultado); // sincronizacion
@@ -24,7 +26,7 @@ Process Coordinador {
 	while (true) {
 		receive llegada(id);
 
-		while (!empty listo) {
+		while (not empty listo) {
 			receive listo(id);
 			totales[id]--;
 		}
