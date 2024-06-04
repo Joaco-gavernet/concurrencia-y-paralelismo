@@ -20,7 +20,7 @@ Procedure Huellas is
 
 Task Body Especialista is 
 	TEST: string;
-	codigo, similitud: integer;
+	codigo, similitud, pedido: integer;
 Begin
 	loop
 		similitud := -1;
@@ -28,19 +28,19 @@ Begin
 
 		TEST := tomarImagenDeHuella();
 
-		for i in (1..16) loop
-			select
-				accept muestra(m: OUT string) do
-					m := TEST;
-				end muestra;
-			or
-				accept resultado(z: IN integer; porcentaje: IN integer) do 
-					if (porcentaje > similitud) then
-						codigo := z;
-						similitud := porcentaje;
-					end;
-				end resultado;
-			end select;
+		for i in (1..8) loop
+			accept muestra(m: OUT string) do
+				m := TEST;
+			end muestra;
+		end loop;
+
+		for i in (1..8) loop
+			accept resultado(z: IN integer; porcentaje: IN integer) do 
+				if (porcentaje > similitud) then
+					codigo := z;
+					similitud := porcentaje;
+				end;
+			end resultado;
 		end loop
 
 	end loop;
