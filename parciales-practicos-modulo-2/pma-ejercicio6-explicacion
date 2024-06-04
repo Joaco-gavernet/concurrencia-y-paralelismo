@@ -1,0 +1,42 @@
+// Problema: En una empresa de software hay N personas que prueban un nuevo producto
+para encontrar errores, cuando encuentran uno generan un reporte para que un
+empleado corrija el error y esperan la respuesta del mismo. El reporte
+puede ser Urgente o Normal. El empleado toma los reportes de acuerdo al
+orden de llegada, pero dando prioridad a los Urgentes, los evalúan, hace las
+correcciones necesarias y le responde a la persona que hizo el reporte.
+
+chan reporteNormal(string,integer);
+chan reporteUrgente(string,integer);
+chan respuesta[1..N](string);
+chan aviso(boolean);
+
+Process Persona[id:1..N] {
+	string reporte = null;
+	string resultado = null;
+	boolean urgente = false;
+
+	while (true) {
+		buscarErrores(reporte,urgente);
+		if (urgente == true) send reporteUrgente(reporte,id);
+		else send reporteNormal(reporte,id);
+		send aviso(true);
+		receive respuesta[id](resultado);
+	}
+}
+
+Process Empleado {
+	string reporte, resultado;
+	integer id;
+
+	while (true) {
+		receive aviso(ok);
+		if (not empty(reporteUrgente)) -> 
+				receive reporteUrgente(reporte,id);
+				resultado = procesar(reporte);
+		or (empty(reporteUrgente) and not empty(reporteNormal)) ->
+				receive reporteNormal(reporte,id);
+				resultado = procesar(reporte);
+		fi
+		send respuesta[id](resultado);
+	}
+}
