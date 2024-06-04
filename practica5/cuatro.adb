@@ -16,10 +16,12 @@ Procedure Clinica is
 
 	Task Type Paciente;
 	Task Type Enfermera;
+	Task Intermediario;
 	Task Buzon is 
-		entry medicoLibre(hayNota: OUT boolean);
+		entry nuevaNota(dato: OUT boolean);
 		entry nota(mensaje: IN string);
 	End Buzon;
+
 	
 	arrPacientes: array(1..P) of Paciente;
 	arrEnfermeras: array(1..E) of Enfermera;
@@ -28,21 +30,17 @@ Procedure Clinica is
 	Begin
 		loop
 			select
-				accept pedido(datos, resultado) is
+				accept pedido(datos, diagnostico) is
 					resultado := procesar(datos);
 				end pedido;
-			else
-				when (pedido'count = 0) => accept atencion(datos) is
-					datos := analizar(datos); -- incluye el tiempo que demora en procesar la consulta
+			or
+				when (pedido'count = 0) => accept atencion(mensaje) is
+					mensaje := analizar(mensaje); -- incluye tiempo de demora de la consulta
 				end atencion;
-			else
-				-- el medico se encuentra libre
-				Buzon.medicoLibre(hayNota);
-				if (hayNota = true) then 
-					accept nota(mensaje) is
-						procesarMensaje(mensaje);
-					end nota;
-				end if;
+			or
+				when (pedido'count = 0 and atencion'count = 0) => accept nota(mensaje) is
+					procesarMensaje(mensaje);
+				end nota;
 			end select;
 		end loop;
 	End Medico;
@@ -59,7 +57,7 @@ Procedure Clinica is
 			or delay 300
 				strike := strike +1;
 			end select;
-			delay 600; -- espera 10 minutos y vuelve a intentar
+			if (strike < 3) then delay 600; -- espera 10 minutos y vuelve a intentar
 		end loop;
 	End Paciente;
 
@@ -79,6 +77,17 @@ Procedure Clinica is
 		end loop;
 	End Enfermera;
 
+	Task Body Intermediario is
+		mensaje: string;
+	Begin
+		loop
+			Buzon.nuevaNota(dato: OUT string) is
+				mensaje := dato;
+			end nuevaNota;
+			Medico.nota(mensaje);
+		end loop;
+	End Intermediario;
+
 	Task Body Buzon is
 		vector<string> mensajesPendientes;
 		mensaje: string;
@@ -89,10 +98,9 @@ Procedure Clinica is
 					mensajesPendientes.push(mensaje);
 				end nota;
 			or
-				accept medicoLibre(hayNota: OUT boolean) is
-					if (mensajesPendientes.size() > 0) then hayNota := true;
-				  else hayNota := false;
-				end medicoLibre;
+				when (mensajesPendientes.size() > 0) => accept nuevaNota(dato: OUT string) is
+					dato := mensajesPendientes.pop();
+				end nuevaNota;
 			end select;
 		end loop;
 	End Buzon;
