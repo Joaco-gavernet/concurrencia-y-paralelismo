@@ -81,9 +81,7 @@ Procedure Clinica is
 		mensaje: string;
 	Begin
 		loop
-			Buzon.notaIntermediario(dato: OUT string) is
-				mensaje := dato;
-			end nuevaNota;
+			Buzon.notaIntermediario(mensaje); 
 			Medico.nota(mensaje);
 		end loop;
 	End Intermediario;
