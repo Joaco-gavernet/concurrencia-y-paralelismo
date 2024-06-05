@@ -5,38 +5,31 @@ const int I = 3;
 chan aviso(bool);
 chan liberadas(int);
 chan PedidoDirector(string);
-chan PedidoUsuario(id,string);
+chan PedidoUsuario(int,string);
 
 Process Impresora[id:1..I] {
 	string doc;
 	int idC;
 
 	while (true) {
+		send liberadas(id);
 		receive siguiente[id](idC,doc);
 		imprimir(doc);
-		send liberadas(id);
 	}
 }
 
 Process Coordinador {
 	int id;
 	string doc;
-	queue<int> libres = {1..I};
 
 	while (true) {
-		if (libres.size() == 0) {
-			receive liberadas(id);
-			libres.push(id);
-		}
-
+		receive liberadas(id);
 		receive aviso(ok);
-		if (not empty(PedidoDirector)) ->
+		if (not empty(PedidoDirector)) {
 			receive PedidoDirector(doc);
-			send siguiente[libres.pop()](0,doc);
-		* (empty(PedidoDirector) and not empty(PedidoUsuario)) -> 
-			receive PedidoUsuario(id,doc);
-			send siguiente[libres.pop()](id,doc);
-		fi
+			id = 0;
+		} else receive PedidoUsuario(id,doc);
+		send siguiente[libres.pop()](id,doc);
 	}
 }
 
