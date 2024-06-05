@@ -2,6 +2,7 @@
 
 const int I = 3;
 
+chan aviso(bool);
 chan liberadas(int);
 chan PedidoDirector(string);
 chan PedidoUsuario(id,string);
@@ -23,24 +24,26 @@ Process Coordinador {
 	queue<int> libres = {1..I};
 
 	while (true) {
-		while (not empty(liberadas)) {
+		if (libres.size() == 0) {
 			receive liberadas(id);
 			libres.push(id);
 		}
-		while (not empty(PedidoDirector) and libres.size()) {
+
+		receive aviso(ok);
+		if (not empty(PedidoDirector)) ->
 			receive PedidoDirector(doc);
 			send siguiente[libres.pop()](0,doc);
-		}
-		if (not empty(PedidoUsuario) and libres.size()) {
+		* (empty(PedidoDirector) and not empty(PedidoUsuario)) -> 
 			receive PedidoUsuario(id,doc);
 			send siguiente[libres.pop()](id,doc);
-		}
+		fi
 	}
 }
 
 Process Director {
 	while (true) {
 		string doc = trabajar();
+		send aviso(true);
 		send PedidoDirector(doc);
 	}
 }
@@ -48,6 +51,7 @@ Process Director {
 Process Usuario[id:1..N] {
 	while (true) {
 		string doc = trabajar();
+		send aviso(true);
 		send PedidoUsuario(id,doc);
 	}
 }
