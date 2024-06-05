@@ -16,11 +16,9 @@ Process Buffer {
 	queue<int> q;
 	int id;
 
-	while (true) {
-		do {
-			Persona[*]?(id) -> q.push(id);
-			q.size(); Admin?pedido() -> Admin!respuesta(q.pop());
-		}
+	do {
+		Persona[*]?(id) -> q.push(id);
+		q.size(); Admin?pedido() -> Admin!respuesta(q.pop());
 	}
 }
 

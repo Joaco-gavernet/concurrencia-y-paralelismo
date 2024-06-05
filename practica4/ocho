@@ -20,10 +20,9 @@ Process Admin {
 	string examen;
 
 	// espera a que lleguen todos los alumnos
-	while (cont < P) {
-		Alumno[*]?llegada();
-		cont++;
-	}
+	do 
+		cont < P; Alumno[*]?llegada() -> cont++;
+	od
 
 	// avisa el inicio del examen
 	while (cont) {
@@ -31,11 +30,9 @@ Process Admin {
 		cont--;
 	}
 	
-	while (cont < P) {
-		do {
-			Alumno[*]?(id,examen) -> q.push(id,examen);
-			q.size(); Profesor[*]?pedido(id) -> Profesor[id]!resuelto(q.pop()); cont++;
-		}
+	do {
+		cont < P; Alumno[*]?(id,examen) -> q.push(id,examen);
+		q.size(); Profesor[*]?pedido(id) -> Profesor[id]!resuelto(q.pop()); cont++;
 	}
 }
 
