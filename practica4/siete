@@ -22,9 +22,9 @@ Process Buffer {
 	int direc;
 
 	do 
-		Robot?(direc,data) -> q.push(direc,data);
+		Robot[*]?(direc,data) -> q.push(direc,data);
 		q.size(); Servidor?pedido() -> Servidor!envio(q.pop());
-  od
+	od
 }
 
 Process Robot[1..R] {
