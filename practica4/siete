@@ -21,15 +21,15 @@ Process Buffer {
 	string data;
 	int direc;
 
-	do {
+	do 
 		Robot?(direc,data) -> q.push(direc,data);
 		q.size(); Servidor?pedido() -> Servidor!envio(q.pop());
-	}
+  od
 }
 
 Process Robot[1..R] {
 	while (true) {
-		[int,data] = buscarPosibleVirus();
-		Buffer!(int,data);
+		[direc,data] = buscarPosibleVirus();
+		Buffer!(direc,data);
 	}
 }
