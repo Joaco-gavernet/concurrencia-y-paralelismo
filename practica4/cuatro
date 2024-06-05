@@ -3,37 +3,39 @@ El empleado atiende a los clientes en el orden en que hacen los pedidos, pero si
 
 const int T = 10;
 
-chan pedidoCabina(int);
-chan pedidoCobro(int);
+chan pedidos(int,int);
 chan siguienteCabina[1..C](int);
 chan siguienteCobro[1..C](int);
 
 Process Empleado {
 	queue<int> libres = {1..T};
+	queue<int> pendientes;
 	int idC, cabina; 
 
 	while (true) {
-		while (not empty(pedidoCobro) or libres.size() == 0) {
-			receive pedidoCobro(idC,cabina);
-			libres.push(cabina);
+		receive pedido(idC,cabina);
+		if (cabina != -1) { 
+			// como recibe un numero de cabina valido, significa que esta siendo liberada
 			ticket = cobrar();
-			send siguienteCobro[idC](ticket);
-		}
-		if (not empty(pedidoCabina) and libres.size()) {
-			receive pedidoCabina(idC);
-			send siguienteCabina[idC](libres.pop());
+			if (pendientes.size() > 0) send siguienteCobro[pendientes.pop()](ticket);
+			else libres.push(cabina);
+		else {
+			// como recibe -1, significa que se solicita una cabina disponible
+			if (libres.size() > 0) send siguienteCabina[idC](libres.pop());
+			else pendientes.push(idC);
 		}
 	}
 }
 
 Process Cliente[id:1..C] {
-	int res;
+	int cabina;
+	string comprobante;
 
-	send pedidoCabina(id);
-	receive siguienteCabina[id](res); // recibe numero de cabina
+	send pedido(id,-1); // -1 indica que solicita una cabina
+	receive siguienteCabina[id](cabina); // recibe numero de cabina
 
-	usarCabina(res);
+	usarCabina(cabina);
 
-	send pedidoCobro(id,res);
-	receive siguienteCobro[id](res); // recibe el ticket de cobro
+	send pedido(id,cabina); // indica la cabina que libera
+	receive siguienteCobro[id](comprobante); // recibe el ticket de cobro
 }
