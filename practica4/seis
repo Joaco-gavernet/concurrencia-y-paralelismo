@@ -14,12 +14,10 @@ Process Buffer {
 	queue<string> q;
 	string muestra;
 
-	while (true) {
-		do {
-			Uno?(muestra) -> q.push(muestra);
-			q.size(); Dos?pedido() -> Dos!reporte(q.pop());	
-		}
-	}
+	do 
+		Uno?(muestra) -> q.push(muestra);
+		q.size(); Dos?pedido() -> Dos!respuesta(q.pop());	
+	od
 }
 
 Process Dos {
@@ -27,7 +25,7 @@ Process Dos {
 
 	while (true) {
 		Buffer!pedido();
-		Buffer?reporte(muestra);
+		Buffer?respuesta(muestra);
 		string set = procesar(muestra);
 		Tres!inicio(set);
 		Tres?fin(set);
