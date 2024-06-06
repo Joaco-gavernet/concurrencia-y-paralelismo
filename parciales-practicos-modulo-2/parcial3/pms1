@@ -1,0 +1,53 @@
+// Problema: Resolver con Pasaje de Mensajes Sincrónicos (PMS) el siguiente problema. En un torneo de programación hay 1 organizador, N competidores y S supervisores. 
+El organizador comunica el desafío a resolver a cada competidor. Cuando un competidor cuenta con el desafío a resolver, lo hace y lo entrega para ser evaluado. A continuación, espera a que alguno de los supervisores lo corrija y le indique si está bien. 
+En caso de tener errores, el competidor debe corregirlo y volver a entregar, repitiendo la misma metodología hasta que llegue a la solución esperada. Los supervisores corrigen las entregas respetando el orden en que los competidores van entregando. 
+Nota: maximizar la concurrencia y no generar demora innecesaria.
+
+
+Process Organizador {
+  int id;
+  for i in 1..N {
+    Competidor[*]?pedido(id);
+    Competidor[id]!prueba(generarDesafio());
+  }
+}
+
+Process Competidor[id:1..N] {
+  Desafio d;
+
+  Organizador!pedido(id);
+  Organizador?prueba(d);
+  bool exito = false;
+
+  while (exito == false) {
+    Buffer!solucion(id,resolver(d));
+    Supervisor[*]?resultado(exito);
+  }
+}
+
+Process Buffer {
+  int id;
+  Desafio d;
+  queue<int,Desafio> cola;
+
+  while (true) {
+    if (Competidor[*]?solucion(id,d)) -> 
+      cola.push(id,d);
+    * (cola.size() > 0); Supervisor[*]?siguiente(id) -> 
+      Supervisor[id]!respuesta(cola.pop());
+    end if;
+  }
+}
+
+Process Supervisor[id:1..S] {
+  int id;
+  Desafio d;
+  bool exito;
+
+  while (true) {
+    Buffer!siguiente(id);
+    Buffer?respuesta(idc,d);
+    exito = procesar(d);
+    Competidor[idc]!resultado(exito);
+  }
+}

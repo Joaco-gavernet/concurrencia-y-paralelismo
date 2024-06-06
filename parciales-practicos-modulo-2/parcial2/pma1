@@ -1,0 +1,34 @@
+// Problema: Resolver con PASAJE DE MENSAJES ASINCRÓNICO (PMA) el siguiente problema. En un negocio de cobros digitales hay P personas que deben pasar por la única caja de cobros para realizar el pago de sus boletas. Las personas son atendidas de acuerdo con el orden de llegada, teniendo prioridad aquellos que deben pagar menos de 5 boletas de los que pagan más. Adicionalmente, las personas embarazadas tienen prioridad sobre los dos casos anteriores. Las personas entregan sus boletas al cajero y el dinero de pago; el cajero les devuelve el vuelto y los recibos de pago.
+
+chan aviso();
+chan palta(int,int,Voletas);
+chan pmedia(int,int,Voletas);
+chan pbaja(int,int,Voletas);
+chan respuesta[1..P](int,int,Voletas);
+
+
+Process Persona[id:1..P] {
+  int dinero = dineroDisponible();
+  Voletas vs = generarVoletas();
+
+  if (soyPrioritario()) send palta();
+  else if (vs.size() < 5) send pmedia();
+  else send pbaja();
+
+  send aviso();
+  receive respuesta[id](dinero,vs);
+}
+
+Process Cajero {
+  int id, dinero;
+  Voletas vs;
+
+  while (true) {
+    receive aviso();
+    if (empty(palta) and empty(pmedia)) -> receive pbaja(id,dinero,vs);
+    * (empty(palta)) -> receive pmedia(id,dinero,vs);
+    * (not empty(palta)) -> receive palta(id,dinero,vs);
+
+    send respuesta[id](procesar(dinero,vs);
+  }
+}

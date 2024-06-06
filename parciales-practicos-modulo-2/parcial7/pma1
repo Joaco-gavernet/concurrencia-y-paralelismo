@@ -1,0 +1,32 @@
+// Problema: Resolver con PMA (Pasaje de Mensajes ASINCRÓNICOS) el siguiente problema. En un negocio hay 3
+empleados que atienden de acuerdo al orden de llegada a N personas que van a pedir un presupuesto. Cuando el
+cliente sabe que empleado lo va a atender le entrega el listado de productos que necesita, y luego el empleado le
+entrega el presupuesto del mismo. Cuando un empleado está libre atiende a la primera persona que esté esperando
+para ser atendida. Nota: maximizar la concurrencia.
+
+
+chan cola(int);
+chan asignado[1..N](int);
+chan pedido[1..3](int,T);
+chan esperando[1..N](T);
+
+Process Cliente[id:1..N] {
+	send cola(id);
+	receive asignado[id](emp);
+	send pedido[emp](datos);
+	receive esperando[id](resultado);
+}
+
+
+Process Empleado[id:1..3] {
+	int idc;
+
+	while (true) {
+		receive cola(idc);
+		send asignado[idc](id);
+		receive pedido[id](datos);
+		send esperando[idc](presupuestar(datos));
+	}
+}
+
+

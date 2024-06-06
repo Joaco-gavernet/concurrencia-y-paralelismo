@@ -1,0 +1,67 @@
+// Problema: En un negocio de cobros digitales hay P personas que deben pasar por la única caja de cobros para realizar el pago de sus boletas. Las personas son atendidas de acuerdo con el orden de llegada, teniendo prioridad aquellos que deben pagar menos de 5 boletas de los que pagan más. Adicionalmente, las personas embarazadas y los ancianos tienen prioridad sobre los dos casos anteriores. Las personas entregan sus boletas al cajero y el dinero de pago; el cajero les devuelve el vuelto y los recibos de pago. Implemente un programa que permita resolver el problema anterior usando ADA.
+
+
+
+Procedure Negocio is
+
+  Task Cajero is
+    entry palta(id: IN integer; voletas: IN/OUT vector<T>; dinero: IN/OUT integer);
+    entry pmedia(id: IN integer; voletas: IN/OUT vector<T>; dinero: IN/OUT integer);
+    entry pbaja(id: IN integer; voletas: IN/OUT vector<T>; dinero: IN/OUT integer);
+  End Cajero;
+
+  Task Type Persona is
+    entry ident(pos: IN integer);
+  End Persona;
+
+  arr: array(1..P) of Persona;
+  cajero: Cajero;
+
+---------------------------
+
+  Task Body Cajero is
+  Begin
+    for i in 1..P loop
+      select
+	accept palta(id: IN integer; voletas: IN/OUT vector<T>; dinero: IN/OUT integer) do 
+	  [voletas,dinero] = cobrar(voletas,dinero);
+	end pbaja;
+      or
+	when (palta'count = 0); accept pmedia(id: IN integer; voletas: IN/OUT vector<T>; dinero: IN/OUT integer) do 
+	  [voletas,dinero] = cobrar(voletas,dinero);
+	end pbaja;
+      or
+	when (palta'count = 0 and pmedia'count = 0); accept pbaja(id: IN integer; voletas: IN/OUT vector<T>; dinero: IN/OUT integer) do 
+	  [voletas,dinero] = cobrar(voletas,dinero);
+	end pbaja;
+      end select;
+    end loop;
+  End Cajero;
+
+  Task Body Persona is
+    voletas: vector<T>;
+    id, dinero: integer;
+    prioridad: boolean;
+  Begin
+    accept ident(pos: IN integer) is
+      id := pos;
+    end ident;
+
+    voletas = generarVoletas();
+    dinero = dineroDisponible();
+    prioridad = soyPrioritario();
+
+    if (prioritario = true) Cajero.palta(id,voletas,dinero);
+    else if (voletas.size() < 5) Cajero.pmedia(id,voletas,dinero);
+    else Cajero.pbaja(id,voletas,dinero);
+
+    retirarse();
+  End Persona;
+---------------------------
+
+Begin
+  for i in 1..P loop
+    arr[i].ident(i);
+  end loop;
+End Negocio;
+

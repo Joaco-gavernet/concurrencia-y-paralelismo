@@ -1,0 +1,29 @@
+// Problema: Resolver con Pasaje de Mensajes Sincrónicos (PMS) el siguiente problema. En un comedor estudiantil hay un horno microondas que debe ser usado por E estudiantes de acuerdo con el orden de llegada. Cuando el estudiante accede al horno, lo usa y luego se retira para dejar al siguiente. Nota: cada Estudiante una sólo una vez el horno.
+
+
+Process Estudiante[id:1..E] {
+  Coordinador!encolar(id);
+  Coordinador?entrada();
+
+  usarMicroondas();
+
+  Coordinador!salida();
+}
+
+Process Coordinador {
+  bool libre = true;
+  int id;
+
+  while (true) {
+    if (libre == true); Estudiante[*]?encolar(id) ->
+      libre = false;
+      Estudiante[id]!entrada();
+    * (libre == false); Estuadiante[*]?encolar(id) ->
+      q.push(id);
+    * true; Estudiante[*]?salida() -> 
+      if (not empty(q)) Estudiante[q.pop()]!entrada();
+      else libre = true;
+    fi
+  }
+}
+

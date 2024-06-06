@@ -1,0 +1,66 @@
+// Problema: Resolver con ADA el siguiente problema. Se debe controlar el acceso a una base de datos. Existen L procesos Lectores y E procesos Escritores que trabajan indefinidamente de la siguiente manera:
+• Escritor: intenta acceder para escribir, si no lo logra inmediatamente, espera 1 minuto y vuelve a intentarlo de la misma manera.
+• Lector: intenta acceder para leer, si no lo logro en 2 minutos, espera 5 minutos y vuelve a intentarlo de la misma manera. 
+Un proceso Escritor podrá acceder si no hay ningún otro proceso usando la base de datos; al acceder escribe y sale de la BD. Un proceso Lector podrá acceder si no hay procesos Escritores usando la base de datos; al acceder lee y sale de la BD. 
+Siempre se le debe dar prioridad al pedido de acceso para escribir sobre el pedido de acceso para leer.
+
+
+Procedure Base is
+
+  Task Admin is
+    entry inLector();
+    entry inEscritor();
+    entry outLector();
+    entry outEscritor();
+  End Admin;
+
+  Task Type Lector; 
+  Task Type Escritor;
+
+  arrLectores: array(1..L) of Lector;
+  arrEscritores: array(1..E) of Escritor;
+---------------------------
+  Task Body Admin is
+  Begin
+    loop
+      select
+	when (lectores = 0) => accept inEscritor() do 
+	  accept outEscritor();
+	end inEscritor();
+      or
+	when (inEscritor'count = 0) => accept inLector(); 
+	lectores := lectores +1;
+      or
+	accept outLector();
+	lectores := lectores -1;
+      end select;
+    end loop;
+  End Admin;
+
+
+  Task Body Lector is
+  Begin
+    loop
+      trabajar();
+      Admin.inLector();
+      leerBaseDeDatos();
+      Admin.outLector();
+    end loop;
+  End Lector;
+
+
+  Task Body Escritor is
+  Begin
+    loop
+      trabajar();
+      Admin.inEscritor();
+      escribirBaseDeDatos();
+      Admin.outEscritor();
+    end loop;
+  End Escritor;
+
+---------------------------
+
+Begin
+  null;
+End Base;

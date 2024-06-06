@@ -1,0 +1,29 @@
+// Problema: Resolver con PMS. En la estación de trenes hay una terminal de SUBE que debe ser usada por P personas de acuerdo con el orden de llegada. Cuando la persona accede a la terminal, la usa y luego se retira para dejar al siguiente. Nota: cada Persona una sólo una vez la terminal.
+
+Process Persona[id:1..P] {
+  Coordinador!pedido(id);
+  Coordinador?entrada();
+
+  usarTerminal();
+
+  Coordinador!salida();
+}
+
+Process Coordinador {
+  queue<int> cola;
+  libre: boolean := true;
+  id: int;
+
+  while (true) {
+    if (libre = true); Persona[*]?pedido(id) -> 
+	Persona[id]!entrada();
+	libre := false;
+      * (libre = false); Persona[*]?pedido(id) ->  
+	q.push(id);
+      * (cola.size() > 0); Persona[*]?salida() -> 
+	Persona[cola.pop()]!entrada();
+      * (cola.size() = 0); Persona[*]?salida() -> 
+	libre = true;
+    fi
+  }
+}
